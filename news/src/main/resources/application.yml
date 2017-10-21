@@ -1,0 +1,19 @@
+spring:
+  social:
+    twitter:
+      app-id: mfLfNsCFb58aZpKvuB0Y7Y8nk
+      app-secret: KLXnPqo59flmS2dSAx8N5FcMsLGgouqQdaqs8BCjyjcRq81KQ0
+
+
+watson:
+  discovery:
+    url: https://gateway-fra.watsonplatform.net/discovery/api
+    username: 47f69149-fd41-461d-90e1-72d1431c59df
+    password: KywqOSnh7Nvn
+    version: 2017-10-16
+  tone:
+    url: https://gateway-fra.watsonplatform.net/tone-analyzer/api
+    username: 9def8a90-7ae4-4b62-b0e0-1c073a4136cf
+    password: QPvo7lvWQZH1
+    version: 2017-10-16
+  
