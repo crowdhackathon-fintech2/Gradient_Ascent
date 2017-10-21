@@ -1,11 +1,8 @@
 package org.gradientascent.service;
 
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.gradientascent.config.DiscoveryProperties;
-import org.gradientascent.config.ToneAnalyzerProperties;
 import org.gradientascent.controller.WatsonResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,26 +16,34 @@ import org.springframework.web.client.RestTemplate;
 
 import com.ibm.watson.developer_cloud.tone_analyzer.v3.ToneAnalyzer;
 import com.ibm.watson.developer_cloud.tone_analyzer.v3.model.ToneAnalysis;
-import com.ibm.watson.developer_cloud.tone_analyzer.v3.model.ToneInput;
 import com.ibm.watson.developer_cloud.tone_analyzer.v3.model.ToneOptions;
 import com.ibm.watson.developer_cloud.tone_analyzer.v3.model.ToneOptions.Tone;
 
+/**
+ * Service for calls to IBM Watson Services
+ * @author Petros Siatos
+ *
+ */
 @Service
 public class WatsonService {
 
 	private DiscoveryProperties discoveryProperties;
-	private ToneAnalyzerProperties toneAnalyzerProperties;
 	private ToneAnalyzer toneAnalyzer;
 	private RestTemplate restTemplate;
 	
-	public WatsonService(DiscoveryProperties discoveryProperties, ToneAnalyzerProperties toneAnalyzerProperties, 
-			ToneAnalyzer toneAnalyzer, RestTemplate reTemplate) {
+	public WatsonService(DiscoveryProperties discoveryProperties, ToneAnalyzer toneAnalyzer, RestTemplate reTemplate) {
 		this.discoveryProperties = discoveryProperties;
-		this.toneAnalyzerProperties = toneAnalyzerProperties;
 		this.toneAnalyzer = toneAnalyzer;
 		this.restTemplate = reTemplate;
 	}
 
+	/**
+	 * Returns the sums/percentages of positive/negative/neutral sentiments, after the analysis of IBM Watson Discovery News
+	 * on the documents that contain the given company.
+	 * @param company
+	 * @return
+	 * @throws JSONException
+	 */
 	public WatsonResponse getCompanySentimentQuery(String company) throws JSONException {
 		
 		String usernameAndPass = discoveryProperties.getUsername() + ":" + discoveryProperties.getPassword();
@@ -103,6 +108,11 @@ public class WatsonService {
         return new WatsonResponse(positives, negatives, sum, neutral, posPercent, negPercent, neutralPercent);
     }
 	
+	/**
+	 * Analyzes the emotion tone of the given text with the IBM Watson Tone Analyzer Service
+	 * @param text
+	 * @return
+	 */
 	public ToneAnalysis analyzeTone(String text) {
 		ToneOptions toneOptions = new ToneOptions.Builder()
 				.addTone(Tone.EMOTION)
@@ -110,24 +120,6 @@ public class WatsonService {
 				.text(text).build();
 		
 		return toneAnalyzer.tone(toneOptions).execute();
-//		
-//		String usernameAndPass = toneAnalyzerProperties.getUsername() + ":" + toneAnalyzerProperties.getPassword();
-//		String encodedUsernameAndPass = Base64.getEncoder().encodeToString(usernameAndPass.getBytes());
-//		
-//		HttpHeaders headers = new HttpHeaders();
-//		headers.add("Authorization", "Basic " + encodedUsernameAndPass);
-//		
-//		HttpEntity<Void> entity = new HttpEntity<>(headers);
-//		
-//		ResponseEntity<ToneAnalysis> response = restTemplate.exchange(
-//				toneAnalyzerProperties.getUrl() 
-//				+ "/v3/"
-//				+ "/tone"
-//				+ "?version=" + toneAnalyzerProperties.getVersion()
-//				+ "&text=" + text,
-//				HttpMethod.GET, entity, ToneAnalysis.class);
-//		
-//		return response.getBody();
 	}
 	
 }
