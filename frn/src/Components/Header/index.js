@@ -10,7 +10,6 @@ import Apps from 'material-ui-icons/Apps';
 import Notifications from 'material-ui-icons/Notifications';
 import IconButton from 'material-ui/IconButton';
 import Button from 'material-ui/Button';
-import Hidden from 'material-ui/Hidden';
 import { Link } from 'react-router-dom';
 
 const styles = theme => {
@@ -74,14 +73,12 @@ class SimpleAppBar extends Component {
         value={value}
         onChange={this.handleChange}>
         {labels.map((label, i) => (
-          <Link to={label}>
             <Tab
               key={i}
               value={label}
               style={{ color: pathName.match(label) ? 'black' : 'rgba(126, 126, 126, 0.45)' }}
               label={label}
             />
-          </Link>
         ))}
       </Tabs>
     );

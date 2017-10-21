@@ -4,7 +4,6 @@ const view = (state = {}, { type, payload }) => {
   switch (type) {
     case 'GET_PLACES':
       return state;
-      break;
     default:
       return state;
   }
