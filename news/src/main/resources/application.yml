@@ -15,5 +15,5 @@ watson:
     url: https://gateway-fra.watsonplatform.net/tone-analyzer/api
     username: 9def8a90-7ae4-4b62-b0e0-1c073a4136cf
     password: QPvo7lvWQZH1
-    version: 2017-10-16
+    version: 2016-05-19
   
