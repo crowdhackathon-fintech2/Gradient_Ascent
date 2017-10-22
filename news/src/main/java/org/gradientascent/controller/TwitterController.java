@@ -29,7 +29,7 @@ public class TwitterController {
 	}
 	
 	@GetMapping(value = "/search/{company}/tone") 
-	public Tuple2<List<Tweet>, ToneAnalysis> getToneAnalysisForTweets(@PathVariable String company) {
+	public ToneAnalysis getToneAnalysisForTweets(@PathVariable String company) {
 		return twitterService.getTweetsWithToneAnalysis(company);
 	}
 }

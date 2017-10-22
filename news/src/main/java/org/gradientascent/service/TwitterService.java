@@ -47,13 +47,13 @@ public class TwitterService {
 	 * @param company
 	 * @return
 	 */
-	public Tuple2<List<Tweet>, ToneAnalysis> getTweetsWithToneAnalysis(String company) {
+	public ToneAnalysis getTweetsWithToneAnalysis(String company) {
 		List<Tweet> tweets = searchByCompany(company);
 		
 		String tweetsText = tweets.stream()
 				.map(Tweet::getText)
 				.collect(Collectors.joining());
 		
-		return Tuple.of(tweets, watsonService.analyzeTone(tweetsText));
+		return watsonService.analyzeTone(tweetsText);
 	}
 }
