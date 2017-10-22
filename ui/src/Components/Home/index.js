@@ -20,8 +20,8 @@ const googleApiTypes = [
   "art gallery",
   "atm",
   "bakery",
-  "bank",
   "bar",
+  "bank",
   "beauty salon",
   "bicycle store",
   "book store",
@@ -163,7 +163,7 @@ const defaultData = {
   datasets: [
     {
       data: [10, 10, 10],
-      backgroundColor: ["red", "green", "grey"]
+      backgroundColor: ["green", "red", "grey"]
     }
   ]
 };
@@ -171,7 +171,7 @@ const defaultData = {
 class Home extends Component {
   state = {};
   showGlobalChart = id => {
-    fetch(`http://104.41.55.79/api/watson/news/${encodeURIComponent(id)}`)
+    fetch(`http://api.grascent.tk/api/watson/news/${encodeURIComponent(id)}`)
       .then(data => data.json())
       .then(data => {
         defaultData.datasets[0].data = [
@@ -184,7 +184,31 @@ class Home extends Component {
       });
   };
 
+  componentDidMount() {
+    window.setState = e => this.setState(e);
+    var input = document.getElementById("autocomplete");
+    var options = {
+      types: ["(cities)", "address"],
+      componentRestrictions: { country: "gr" }
+    };
+    window.autocomplete = new window.google.maps.places.Autocomplete(
+      input,
+      options
+    );
+
+    window.google.maps.event.addListener(
+      window.autocomplete,
+      "place_changed",
+      function() {
+        var place = window.autocomplete.getPlace();
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        window.setState({ coords: `${lat},${lng}` });
+      }
+    );
+  }
   render() {
+    console.log(this.state.coords);
     const { classes } = this.props;
     const { id, type } = this.state;
     const data = this.state.data || defaultData;
@@ -211,7 +235,7 @@ class Home extends Component {
           </FormControl>
 
           <TextField
-            id="Area"
+            id="autocomplete"
             label="Area"
             className={classes.input}
             margin="normal"
@@ -220,10 +244,10 @@ class Home extends Component {
             Search
           </Button>
         </div>
-        {id && (
+        {true && (
           <div className={classes.charts}>
             <div className={classes.resultsBox}>
-              <h1>global news</h1>
+              <h1>Global news</h1>
               <Doughnut
                 data={data}
                 width={window.innerWidth * 0.2}
@@ -236,7 +260,7 @@ class Home extends Component {
             </div>
 
             <div className={classes.resultsBox}>
-              <h1>Near ratings, comments</h1>
+              <h1>Ratings Nearby</h1>
 
               <Doughnut
                 data={data}
@@ -249,7 +273,7 @@ class Home extends Component {
                 ))}
             </div>
             <div className={classes.resultsBox}>
-              <h1>buisness comments</h1>
+              <h1>Company Ratings</h1>
 
               <Doughnut
                 data={data}
@@ -263,9 +287,9 @@ class Home extends Component {
             </div>
 
             <div className={classes.resultsBox}>
-              <h1>Rates for: {id}</h1>
+              <h1>Rates: {id}</h1>
               <img
-                style={{ width: "100%", position: "relative" }}
+                style={{ width: "75%", position: "relative" }}
                 src="/star.png"
               />
               <h1>0/5</h1>
