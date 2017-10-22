@@ -12,6 +12,13 @@
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
     "mongodb": "^2.2.33",
+    "node-fetch": "^1.7.3",
     "ramda": "^0.25.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.4.0",
+    "eslint-config-node": "^1.6.0",
+    "eslint-config-prettier": "^2.6.0",
+    "eslint-plugin-prettier": "^2.3.1"
   }
 }

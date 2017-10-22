@@ -1,45 +1,37 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongo = require("mongodb").MongoClient;
+
+const { aggr, sentimentsValues } = require("./sentiments");
+const { map } = require("ramda");
+const endpoints = require("./endpoints");
+
+/*
+  import tsv mongo:
+  cd in this dir and run
+  mongoimport --db sentiments --collection lexicon --type tsv --headerline --file greek_sentiment_lexicon.tsv
+*/
+
+// constants
 const mongoUrl = "mongodb://localhost:27017/sentiments";
 const PORT = 3333;
 
-const {
-  add,
-  compose,
-  divide,
-  flip,
-  map,
-  values,
-  pick,
-  chain,
-  tap,
-  sum,
-  range
-} = require("ramda");
-const sayX = x => console.log(x);
-const say = tap(sayX);
-const fDivide = flip(divide);
-
 const app = express();
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-const Anger = range(1, 5).map(i => `Anger${i}`);
-const Disgust = range(1, 5).map(i => `Disgust${i}`);
-const Fear = range(1, 5).map(i => `Fear${i}`);
-const Happiness = range(1, 5).map(i => `Happiness${i}`);
-const Sadness = range(1, 5).map(i => `Sadness${i}`);
-const Surprise = range(1, 5).map(i => `Surprise${i}`);
+const wordsToTry = ["αγαπώ", "κακός"];
 
-const feelings = [
-  ["Anger", Anger],
-  ["Disgust", Disgust],
-  ["Fear", Fear],
-  ["Happiness", Happiness],
-  ["Sadness", Sadness],
-  ["Surprise", Surprise]
-];
+var requestTime = function(req, res, next) {
+  req.requestTime = Date.now();
+  next();
+};
+app.use(requestTime);
 
-app.get("/f", (request, response) => {});
+const dbContext = db => (req, res, next) => {
+  req.db = db;
+  next();
+};
 
 mongo.connect(mongoUrl, (err, db) => {
   if (err) {
@@ -49,29 +41,12 @@ mongo.connect(mongoUrl, (err, db) => {
       if (err) {
         console.log("error in adding index");
       } else {
-        const results = [];
-        db
-          .collection("lexicon")
-          .find({ $text: { $search: "αγαπώ" } })
-          .toArray((err, docs) => {
-            if (err) {
-              console.log("err in find");
-            } else {
-              const fls = feelings.map(f => ({
-                [f[0]]: compose(
-                  fDivide(4),
-                  sum,
-                  chain(values),
-                  map(pick(f[1]))
-                )(docs)
-              }));
-            }
-          });
+        app.use(dbContext(db));
+        app.use(endpoints);
+        app.listen(PORT, err => {
+          console.log(`started on port: ${PORT}`);
+        });
       }
     });
   }
-});
-
-app.listen(PORT, err => {
-  console.log(`started on port: ${PORT}`);
 });
