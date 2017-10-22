@@ -1,6 +1,9 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import keys from "ramda/src/keys";
+import zipObj from "ramda/src/zipObj";
+import _values from "ramda/src/values";
+import pluck from "ramda/src/pluck";
 import { withStyles } from "material-ui/styles";
 import MenuItem from "material-ui/Menu/MenuItem";
 import TextField from "material-ui/TextField";
@@ -13,6 +16,7 @@ import { FormControl, FormHelperText } from "material-ui/Form";
 
 const googleApiTypes = [
   "",
+  "cafe",
   "accounting",
   "airport",
   "amusement park",
@@ -27,7 +31,6 @@ const googleApiTypes = [
   "book store",
   "bowling alley",
   "bus station",
-  "cafe",
   "campground",
   "car dealer",
   "car rental",
@@ -168,6 +171,26 @@ const defaultData = {
   ]
 };
 
+const defaultTweetData = {
+  labels: ["anger", "disgust", "fear", "joy", "sadness"],
+  datasets: [
+    {
+      data: [10, 10, 10, 10, 10],
+      backgroundColor: ["red", "purple", "grey", "yellow", "blue"]
+    }
+  ]
+};
+
+const defaultNodeData = {
+  labels: ["Anger", "Disgust", "Fear", "Hapinness", "Sadness", "Surprise"],
+  datasets: [
+    {
+      data: [10, 10, 10, 10, 10, 10],
+      backgroundColor: ["red", "purple", "grey", "yellow", "blue", "orange"]
+    }
+  ]
+};
+
 class Home extends Component {
   state = {};
   showGlobalChart = id => {
@@ -181,6 +204,32 @@ class Home extends Component {
         ];
         defaultData.response = data;
         return this.setState({ id, data: defaultData });
+      })
+      .then(() => fetch(`http://api.grascent.tk/api/twitter/search/${id}/tone`))
+      .then(data => data.json())
+      .then(data => data.documentTone.toneCategories[0])
+      .then(arr => {
+        const labels = pluck("toneId", arr.tones);
+        const data = pluck("score", arr.tones);
+        defaultTweetData.datasets[0].data = data;
+        defaultTweetData.response = zipObj(labels, data);
+        return this.setState({ dataTweet: defaultTweetData });
+      });
+  };
+
+  handleSubmit = () => {
+    const { location, type } = this.state;
+    fetch(`http://nodeapi.grascent.tk/places?type=${type}&location=${location}`)
+      .then(data => data.json())
+      .then(data => {
+        const labels = keys(data.data.sentiments);
+        const values = _values(data.data.sentiments);
+        defaultNodeData.datasets[0].data = values;
+        defaultNodeData.response = zipObj(labels, values);
+        return this.setState({
+          ratings: data.data.ratings,
+          defaultNodeData: defaultNodeData
+        });
       });
   };
 
@@ -188,7 +237,7 @@ class Home extends Component {
     window.setState = e => this.setState(e);
     var input = document.getElementById("autocomplete");
     var options = {
-      types: ["(cities)", "address"],
+      types: ["(cities)"],
       componentRestrictions: { country: "gr" }
     };
     window.autocomplete = new window.google.maps.places.Autocomplete(
@@ -203,15 +252,17 @@ class Home extends Component {
         var place = window.autocomplete.getPlace();
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
-        window.setState({ coords: `${lat},${lng}` });
+        window.setState({ location: `${lat},${lng}` });
       }
     );
   }
+
   render() {
-    console.log(this.state.coords);
     const { classes } = this.props;
-    const { id, type } = this.state;
+    const { id, type, ratings = 5 } = this.state;
     const data = this.state.data || defaultData;
+    const dataTweet = this.state.dataTweet || defaultTweetData;
+    const dataNode = this.state.defaultNodeData || defaultNodeData;
     return (
       <div className={classes.root}>
         <div className={classes.inputContainer}>
@@ -240,7 +291,11 @@ class Home extends Component {
             className={classes.input}
             margin="normal"
           />
-          <Button raised className={classes.button}>
+          <Button
+            onClick={() => this.handleSubmit()}
+            raised
+            className={classes.button}
+          >
             Search
           </Button>
         </div>
@@ -249,6 +304,7 @@ class Home extends Component {
             <div className={classes.resultsBox}>
               <h1>Global news</h1>
               <Doughnut
+                options={{ legend: { position: "bottom" } }}
                 data={data}
                 width={window.innerWidth * 0.2}
                 height={300}
@@ -263,26 +319,30 @@ class Home extends Component {
               <h1>Ratings Nearby</h1>
 
               <Doughnut
-                data={data}
+                options={{ legend: { position: "bottom" } }}
+                data={dataNode}
                 width={window.innerWidth * 0.2}
                 height={300}
               />
-              {data.response &&
-                keys(data.response).map(k => (
-                  <h3>{`${k}: ${data.response[k]}`}</h3>
+              {true &&
+                keys(dataNode.response).map(k => (
+                  <h3>{`${k}: ${dataNode.response[k]}`}</h3>
                 ))}
             </div>
             <div className={classes.resultsBox}>
-              <h1>Company Ratings</h1>
+              <h1>Company Tweets</h1>
 
               <Doughnut
-                data={data}
+                options={{ legend: { position: "bottom" } }}
+                data={dataTweet}
                 width={window.innerWidth * 0.2}
                 height={300}
               />
-              {data.response &&
-                keys(data.response).map(k => (
-                  <h3>{`${k}: ${data.response[k]}`}</h3>
+              {dataTweet.response &&
+                keys(dataTweet.response).map(k => (
+                  <h3>{`${k}: ${(+dataTweet.response[k] * 100).toFixed(
+                    2
+                  )}%`}</h3>
                 ))}
             </div>
 
@@ -292,7 +352,7 @@ class Home extends Component {
                 style={{ width: "75%", position: "relative" }}
                 src="/star.png"
               />
-              <h1>0/5</h1>
+              <h1>{+ratings.toFixed(1)}/5</h1>
             </div>
           </div>
         )}
